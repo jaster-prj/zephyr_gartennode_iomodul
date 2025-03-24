@@ -1,0 +1,50 @@
+name: CI
+on:
+  workflow_dispatch:
+jobs:
+  build-job:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/jaster-prj/devcontainer-zephyr-dev:latest
+    steps:
+      - name: Clone Workspace
+        uses: actions/checkout@v4
+        with:
+          repository: jaster-prj/zephyr_workspace
+          path: './zephyr_workspace'
+      - name: Clone Application
+        uses: actions/checkout@v4
+        with:
+          path: './zephyr_workspace/application'
+          submodules: recursive
+      - name: link custom boards
+        working-directory: ./zephyr_workspace/application/custom_boards
+        run: |
+          ./link.sh
+      - name: initialize west
+        working-directory: ./zephyr_workspace
+        run: |
+          west update
+          west zephyr-export
+          pip install -r zephyr/scripts/requirements.txt
+      - name: patch git
+        working-directory: ./zephyr_workspace/zephyr
+        run: |
+          git apply ../.patch/gpio_pcf857x.patch
+      - name: save gartennode.pem
+        working-directory: ./zephyr_workspace/bootloader/mcuboot
+        run: |
+          echo "$PEM" | base64 --decode > gartennode.pem
+        shell: bash
+        env:
+          PEM: ${{ secrets.ZEPHYR_SIGN_KEY }}
+      - name: build application
+        working-directory: ./zephyr_workspace
+        run: |
+          west build -b gartennode application --build-dir build -- -DEXTRA_CONF_FILE=prj.conf
+          imgtool sign --header-size 0x200 --align 8 --version 1.2 --slot-size 0x30000 --key bootloader/mcuboot/gartennode.pem --pad build/zephyr/zephyr.bin signed_zephyr.bin
+      - name: Publish binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed_zephyr
+          path: zephyr_workspace/signed_zephyr.bin

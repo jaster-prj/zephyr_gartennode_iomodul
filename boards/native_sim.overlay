@@ -1,0 +1,26 @@
+/ {
+	chosen {
+		zephyr,canbus = &can_udp0;
+	};
+
+	can_udp0: udp-can {
+		compatible = "zephyr,native-linux-udp-can";
+		host = "127.0.0.1";
+		port = <46100>;
+		local-port = <46114>;
+		status = "okay";
+	};
+
+	io1_sw: io1-switch { compatible = "power-switch"; gpios = <&gpio0 0 GPIO_ACTIVE_HIGH>; status = "okay"; };
+	io2_sw: io2-switch { compatible = "power-switch"; gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>; status = "okay"; };
+	io3_sw: io3-switch { compatible = "power-switch"; gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>; status = "okay"; };
+	io4_sw: io4-switch { compatible = "power-switch"; gpios = <&gpio0 3 GPIO_ACTIVE_HIGH>; status = "okay"; };
+	io5_sw: io5-switch { compatible = "power-switch"; gpios = <&gpio0 4 GPIO_ACTIVE_HIGH>; status = "okay"; };
+	io6_sw: io6-switch { compatible = "power-switch"; gpios = <&gpio0 5 GPIO_ACTIVE_HIGH>; status = "okay"; };
+	io7_sw: io7-switch { compatible = "power-switch"; gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>; status = "okay"; };
+	io8_sw: io8-switch { compatible = "power-switch"; gpios = <&gpio0 7 GPIO_ACTIVE_HIGH>; status = "okay"; };
+};
+
+&gpio0 {
+	status = "okay";
+};
